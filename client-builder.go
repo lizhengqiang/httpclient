@@ -9,6 +9,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -92,6 +94,12 @@ func (builder *Builder) makeCookieClient(cookieJarBytes []byte) *http.Client {
 		cl = &http.Client{Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			Dial:            dialer.Dial,
+		}}
+	} else if (strings.HasPrefix(builder.Proxy, "http")) {
+		urlProxy, _ := url.Parse(builder.Proxy)
+		cl = &http.Client{Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			Proxy:           http.ProxyURL(urlProxy),
 		}}
 	} else {
 		proxyDialer, _ := proxy.SOCKS5("tcp", builder.Proxy, builder.Auth, dialer)
